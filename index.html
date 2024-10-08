@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Facebook Login Test</title>
+  </head>
+  <body>
+    <h1>Facebook Login and Fetch Pages</h1>
+
+    <button id="fb-login-btn" onclick="loginWithFacebook()">
+      Login with Facebook
+    </button>
+
+    <div id="pages-list"></div>
+
+    <script
+      async
+      defer
+      crossorigin="anonymous"
+      src="https://connect.facebook.net/en_US/sdk.js"
+    ></script>
+
+    <script>
+      window.fbAsyncInit = function () {
+        FB.init({
+          appId: "YOUR_APP_ID",
+          cookie: true,
+          xfbml: true,
+          version: "v20.0",
+        });
+
+        FB.AppEvents.logPageView();
+      };
+
+      function loginWithFacebook() {
+        FB.login(
+          function (response) {
+            if (response.authResponse) {
+              const accessToken = response.authResponse.accessToken;
+              console.log("Access Token:", accessToken);
+
+              fetchUserPages(accessToken);
+            } else {
+              console.log("User cancelled login or did not fully authorize.");
+            }
+          },
+          {
+            scope:
+              "pages_show_list, pages_read_engagement, pages_manage_metadata",
+          }
+        );
+      }
+
+      function fetchUserPages(accessToken) {
+        FB.api(
+          "/me/accounts",
+          { access_token: accessToken },
+          function (response) {
+            console.log("Pages:", response);
+            if (response && !response.error) {
+              const pagesList = document.getElementById("pages-list");
+              pagesList.innerHTML = "<h2>Your Managed Pages</h2><ul>";
+
+              response.data.forEach((page) => {
+                pagesList.innerHTML += `<li>${page.name} (ID: ${page.id})</li>`;
+              });
+
+              pagesList.innerHTML += "</ul>";
+            } else {
+              console.error("Error fetching pages:", response.error);
+            }
+          }
+        );
+      }
+    </script>
+  </body>
+</html>
